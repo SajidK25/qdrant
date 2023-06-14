@@ -754,6 +754,7 @@ impl TableOfContent {
         let UpdateCollection {
             optimizers_config,
             params,
+            hnsw_config,
         } = operation.update_collection;
         let collection = self.get_collection(&operation.collection_name).await?;
         if let Some(diff) = optimizers_config {
@@ -761,6 +762,9 @@ impl TableOfContent {
         }
         if let Some(diff) = params {
             collection.update_params_from_diff(diff).await?;
+        }
+        if let Some(diff) = hnsw_config {
+            collection.update_hnsw_config_from_diff(diff).await?;
         }
         if let Some(changes) = replica_changes {
             collection.handle_replica_changes(changes).await?;
