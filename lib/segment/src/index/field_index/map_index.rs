@@ -308,7 +308,7 @@ impl<N: Hash + Eq + Clone + Display + FromStr> MapIndex<N> {
 }
 
 impl PayloadFieldIndex for MapIndex<String> {
-    fn indexed_points(&self) -> usize {
+    fn count_indexed_points(&self) -> usize {
         self.indexed_points
     }
 
@@ -392,14 +392,10 @@ impl PayloadFieldIndex for MapIndex<String> {
             });
         Box::new(iter)
     }
-
-    fn count_indexed_points(&self) -> usize {
-        self.indexed_points
-    }
 }
 
 impl PayloadFieldIndex for MapIndex<IntPayloadType> {
-    fn indexed_points(&self) -> usize {
+    fn count_indexed_points(&self) -> usize {
         self.indexed_points
     }
 
@@ -482,10 +478,6 @@ impl PayloadFieldIndex for MapIndex<IntPayloadType> {
                 cardinality: point_ids.len(),
             });
         Box::new(iter)
-    }
-
-    fn count_indexed_points(&self) -> usize {
-        self.indexed_points
     }
 }
 
