@@ -10,13 +10,14 @@ use parking_lot::RwLock;
 use rocksdb::DB;
 use serde_json::Value;
 
-use super::{EstimateCardinality, Filterable, PayloadBlocks};
+use super::{ PayloadFieldIndex};
 use crate::common::rocksdb_wrapper::DatabaseColumnWrapper;
 use crate::common::Flusher;
 use crate::entry::entry_point::{OperationError, OperationResult};
 use crate::index::field_index::stat_tools::number_of_selected_points;
 use crate::index::field_index::{
-    CardinalityEstimation, PayloadBlockCondition, PayloadFieldIndex, PrimaryCondition, ValueIndexer,
+    BasePayloadFieldIndex, CardinalityEstimation, PayloadBlockCondition, PrimaryCondition,
+    ValueIndexer,
 };
 use crate::index::query_estimator::combine_should_estimations;
 use crate::telemetry::PayloadIndexTelemetry;
@@ -285,7 +286,7 @@ impl<N: Hash + Eq + Clone + Display + FromStr> MapIndex<N> {
     }
 }
 
-impl<N: Hash + Eq + Clone + Display + FromStr> PayloadFieldIndex for MapIndex<N> {
+impl<N: Hash + Eq + Clone + Display + FromStr> BasePayloadFieldIndex for MapIndex<N> {
     fn count_indexed_points(&self) -> usize {
         self.indexed_points
     }
@@ -326,7 +327,7 @@ impl<N: Hash + Eq + Clone + Display + FromStr> PayloadFieldIndex for MapIndex<N>
     }
 }
 
-impl Filterable for MapIndex<String> {
+impl PayloadFieldIndex for MapIndex<String> {
     fn filter<'a>(
         &'a self,
         condition: &'a FieldCondition,
@@ -349,9 +350,7 @@ impl Filterable for MapIndex<String> {
             _ => None,
         }
     }
-}
 
-impl EstimateCardinality for MapIndex<String> {
     fn estimate_cardinality(&self, condition: &FieldCondition) -> Option<CardinalityEstimation> {
         match &condition.r#match {
             Some(Match::Value(MatchValue {
@@ -381,9 +380,7 @@ impl EstimateCardinality for MapIndex<String> {
             _ => None,
         }
     }
-}
 
-impl PayloadBlocks for MapIndex<String> {
     fn payload_blocks(
         &self,
         threshold: usize,
@@ -401,7 +398,7 @@ impl PayloadBlocks for MapIndex<String> {
     }
 }
 
-impl Filterable for MapIndex<IntPayloadType> {
+impl PayloadFieldIndex for MapIndex<IntPayloadType> {
     fn filter<'a>(
         &'a self,
         condition: &'a FieldCondition,
@@ -424,9 +421,7 @@ impl Filterable for MapIndex<IntPayloadType> {
             _ => None,
         }
     }
-}
 
-impl EstimateCardinality for MapIndex<IntPayloadType> {
     fn estimate_cardinality(&self, condition: &FieldCondition) -> Option<CardinalityEstimation> {
         match &condition.r#match {
             Some(Match::Value(MatchValue {
@@ -456,9 +451,7 @@ impl EstimateCardinality for MapIndex<IntPayloadType> {
             _ => None,
         }
     }
-}
 
-impl PayloadBlocks for MapIndex<IntPayloadType> {
     fn payload_blocks(
         &self,
         threshold: usize,
