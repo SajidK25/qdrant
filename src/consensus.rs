@@ -893,15 +893,6 @@ impl RaftMessageSender {
                 message = self.messages.recv().await;
             }
 
-            // If we got any message from the queue at this point, the previous hertbeat can be considered outdated:
-            //
-            // - the message is either not a heartbeat, and we could send it right away
-            //   instead of sending an earlier heartbeat first
-            // - or it is a heartbeat, so it would replace the earlier one
-            if message.is_some() {
-                heartbeat = None;
-            }
-
             // Check if the message is a heartbeat...
             let is_heartbeat = message.as_ref().map_or(false, |message| {
                 message.msg_type == raft::eraftpb::MessageType::MsgHeartbeat as i32
@@ -913,12 +904,21 @@ impl RaftMessageSender {
                 continue;
             }
 
+            // At this point, if the message is `Some`, then it is not a heartbeat,
+            // and so we can send it right away and an earlier heartbeat (if any) can be skipped
+            if message.is_some() {
+                heartbeat = None;
+            }
+
             // At this point, three conditions should be possible:
+            //
             // - the message is `Some`
             //   - (and if so, it should be a non-heartbeat one, and heartbeat should be `None`)
             //   - which means we just got a message from the queue that we should send
+            //
             // - the message is `None` and heartbeat is `Some`
             //   - which means we just exhausted the queue, but we have an up-to-date heartbeat that we should send
+            //
             // - or both the message and the hearbeat is `None`
             //   - which means the queue has been closed
             match message.or_else(|| heartbeat.take()) {
