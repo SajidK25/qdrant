@@ -8,7 +8,8 @@ use parking_lot::RwLock;
 use rocksdb::DB;
 use serde_json::Value;
 
-use super::{ PayloadFieldIndex};
+use super::private::DbWrapper;
+use super::PayloadFieldIndex;
 use crate::common::rocksdb_wrapper::DatabaseColumnWrapper;
 use crate::entry::entry_point::{OperationError, OperationResult};
 use crate::index::field_index::geo_hash::{
@@ -30,7 +31,7 @@ use crate::types::{
 const GEO_QUERY_MAX_REGION: usize = 12;
 
 pub struct GeoMapIndex {
-    /**
+    /*
     {
         "d": 10,
         "dr": 10,
@@ -43,7 +44,7 @@ pub struct GeoMapIndex {
      */
     points_per_hash: BTreeMap<GeoHash, usize>,
     values_per_hash: BTreeMap<GeoHash, usize>,
-    /**
+    /*
     {
         "dr5ru": {1},
         "dr5rr": {2, 3},
@@ -454,7 +455,11 @@ impl GeoMapIndex {
 impl ValueIndexer for GeoMapIndex {
     type ValueType = GeoPoint;
 
-    fn add_many(&mut self, id: PointOffsetType, values: Vec<Self::ValueType>) -> OperationResult<()> {
+    fn add_many(
+        &mut self,
+        id: PointOffsetType,
+        values: Vec<Self::ValueType>,
+    ) -> OperationResult<()> {
         self.add_many_geo_points(id, &values)
     }
 
@@ -478,6 +483,12 @@ impl ValueIndexer for GeoMapIndex {
     }
 }
 
+impl DbWrapper for GeoMapIndex {
+    fn db_wrapper(&self) -> &DatabaseColumnWrapper {
+        &self.db_wrapper
+    }
+}
+
 impl BasePayloadFieldIndex for GeoMapIndex {
     fn count_indexed_points(&self) -> usize {
         self.points_count
@@ -485,10 +496,6 @@ impl BasePayloadFieldIndex for GeoMapIndex {
 
     fn load(&mut self) -> OperationResult<bool> {
         GeoMapIndex::load(self)
-    }
-    
-    fn db_wrapper(&self) ->  &DatabaseColumnWrapper {
-        &self.db_wrapper
     }
 
     fn get_telemetry_data(&self) -> PayloadIndexTelemetry {
