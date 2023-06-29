@@ -852,6 +852,7 @@ pub enum PayloadSchemaType {
     Float,
     Geo,
     Text,
+    Bool,
 }
 
 /// Payload type with parameters
@@ -1010,8 +1011,7 @@ pub enum Match {
 }
 
 impl Match {
-    #[cfg(test)]
-    fn new_value(value: ValueVariants) -> Self {
+    pub fn new_value(value: ValueVariants) -> Self {
         Self::Value(MatchValue { value })
     }
 
